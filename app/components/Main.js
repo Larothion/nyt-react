@@ -1,101 +1,69 @@
-// Include React
+// Include React as a dependency
 var React = require("react");
+// Including the Link component from React Router to navigate within our application without full page reloads
+// https://github.com/ReactTraining/react-router/blob/master/docs/API.md#link
+var Link = require("react-router").Link;
 
-// Here we include all of the sub-components
-var Form = require("./children/Form");
-var Results = require("./children/Results");
-var History = require("./children/History");
-
-// Helper for making AJAX requests to our API
-var helpers = require("./utils/helpers");
-
-// Creating the Main component
+// Create the Main component
 var Main = React.createClass({
 
-  // Here we set a generic state associated with the number of clicks
-  // Note how we added in this history state variable
-  getInitialState: function() {
-    return { searchTerm: "", results: "", history: [] };
-  },
-
-  // The moment the page renders get the History
-  componentDidMount: function() {
-    // Get the latest history.
-    helpers.getHistory().then(function(response) {
-      console.log(response);
-      if (response !== this.state.history) {
-        console.log("History", response.data);
-        this.setState({ history: response.data });
-      }
-    }.bind(this));
-  },
-
-  // If the component changes (i.e. if a search is entered)...
-  componentDidUpdate: function() {
-
-    // Run the query for the address
-    helpers.runQuery(this.state.searchTerm).then(function(data) {
-      if (data !== this.state.results) {
-        console.log("Address", data);
-        this.setState({ results: data });
-
-        // After we've received the result... then post the search term to our history.
-        helpers.postHistory(this.state.searchTerm).then(function() {
-          console.log("Updated!");
-
-          // After we've done the post... then get the updated history
-          helpers.getHistory().then(function(response) {
-            console.log("Current History", response.data);
-
-            console.log("History", response.data);
-
-            this.setState({ history: response.data });
-
-          }.bind(this));
-        }.bind(this));
-      }
-    }.bind(this));
-  },
-  // This function allows childrens to update the parent.
-  setTerm: function(term) {
-    this.setState({ searchTerm: term });
-  },
-  // Here we render the function
   render: function() {
+
     return (
-      <div className="container">
-        <div className="row">
+      // We can only render a single div. So we need to group everything inside of this main-container one
+      <div className="main-container">
+        <div className="container">
+          {/* Navbar */}
+          <nav className="navbar navbar-default" role="navigation">
+            <div className="container-fluid">
+              <div className="navbar-header">
+                <button
+                  type="button"
+                  className="navbar-toggle"
+                  data-toggle="collapse"
+                  data-target=".navbar-ex1-collapse"
+                >
+                  <span className="sr-only">Toggle navigation</span>
+                  <span className="icon-bar"></span>
+                  <span className="icon-bar"></span>
+                  <span className="icon-bar"></span>
+                </button>
+                <Link className="navbar-brand" to="/">NYT-React</Link>
+              </div>
+
+              <div className="collapse navbar-collapse navbar-ex1-collapse">
+                <ul className="nav navbar-nav navbar-right">
+                  {/* Using <Link> in place of <a> and "to" in place of "href" */}
+                  <li><Link to="/search">Search</Link></li>
+                  <li><Link to="/saved">Saved Articles</Link></li>
+                </ul>
+              </div>
+            </div>
+          </nav>
+
+          {/* Jumbotron */}
           <div className="jumbotron">
-            <h2 className="text-center">Address Finder!</h2>
-            <p className="text-center">
-              <em>Enter a landmark to search for its exact address (ex: "Eiffel Tower").</em>
+            <h2 className="text-center"><strong>(ReactJS) New York Times Article Scrubber</strong></h2>
+            <h3 className="text-center">Search for and save articles of interest.</h3>
+          </div>
+
+
+          {/* Here we will deploy the sub components (Search or Saved */}
+          {/* These sub-components are getting passed as this.props.children */}
+          {this.props.children}
+
+          <footer>
+            <hr />
+            <p className="pull-right">
+              <i className="fa fa-github" aria-hidden="true"></i>
+              Proudly built using React.js
             </p>
-          </div>
-
-          <div className="col-md-6">
-
-            <Form setTerm={this.setTerm} />
-
-          </div>
-
-          <div className="col-md-6">
-
-            <Results address={this.state.results} />
-
-          </div>
-
+          </footer>
         </div>
-
-        <div className="row">
-
-          <History history={this.state.history} />
-
-        </div>
-
       </div>
     );
   }
 });
 
-// Export the component back for use in other files
+// Export the module back to the route
 module.exports = Main;
